@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     
     int counter = 0;//机器人行进的步数
     int change_counter = 0; //发现改变策略的步数
-    int bar = 1000000; //假设阈值为100
+
 
     //自动生成路径
     nh.getParam("robot_id", robot_id);
@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
                                                             array_robot_msgs_client_3[counter].alco_concentration.concentration
                                                         );
 
-                    if( max_in_three < bar )
+                    if( max_in_three < ALCO_THRESHOLD )
                         {
                             double current_direction = asin(array_robot_msgs_host[counter].position.target_pose.pose.orientation.z) * 2;
                             double step_length = 0.5;

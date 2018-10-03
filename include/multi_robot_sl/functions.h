@@ -118,13 +118,10 @@ void sendGoal(MoveBaseClient& actionlibClient,MoveBaseGoal goal)
     if(actionlibClient.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
         {
             ROS_INFO("Goal reached.");
-            successed_time++;
-            success_config = 1;
         }
     else
         {
             ROS_INFO("Failed to reach the goal."); 
-            success_config = 0;
         }
 }
 

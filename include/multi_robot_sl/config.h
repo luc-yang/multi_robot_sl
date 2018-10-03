@@ -42,9 +42,10 @@
 
 #define SOURCE_RANGE 0.3
 
-#define STEP_LEN_MAX 0.3
+#define STEP_LEN_MAX 0.2
 #define STEP_LEN_MIN 0.1
 #define WIND_THRESHOLD 1
+#define ALCO_THRESHOLD 500
 
 using namespace std;
 
@@ -52,12 +53,8 @@ typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseCl
 typedef move_base_msgs::MoveBaseGoal MoveBaseGoal;
 typedef multi_robot_sl::robot_msgs RobotMsgs;
 
-int successed_time = 0;
-double step_length = 0.3;
-double theta;
-int success_config = 1;
-int record_seconds = 2;//record_seconds要大于wait_seconds
-int wait_seconds = 1;
+int record_seconds = 5;//record_seconds要大于wait_seconds
+int wait_seconds = 0;
 
 int experiment_serial_number;
 char file_path[1024];
