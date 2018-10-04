@@ -248,3 +248,11 @@ add_dependencies(for_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_
 target_link_libraries(for_test
   ${catkin_LIBRARIES}
 )
+
+add_executable(test_wind_direction
+  src/test_wind_direction.cpp
+)
+add_dependencies(test_wind_direction ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(test_wind_direction
+  ${catkin_LIBRARIES}
+)

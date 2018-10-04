@@ -59,11 +59,16 @@ int main (int argc, char** argv)
             for(int i=0;i<8;i++)
                {
                    a[i]=(unsigned char)result.data[i];
-               }    
+               }                
             wind_information.speed = (float)((a[3]<<8)+a[4])/100;
-            wind_information.direction = (float)((a[5]<<8)+a[6]);
+            double angle;
+            angle = (float)((a[5]<<8)+a[6]);
+            if(angle >= 180)
+                wind_information.direction = - M_PI / 180 * angle + 2 * M_PI;
+            else
+                wind_information.direction = - angle / 180 * M_PI;
             wind_pub.publish(wind_information);
-        } 
+        }
         loop_rate.sleep(); 
     } 
 } 

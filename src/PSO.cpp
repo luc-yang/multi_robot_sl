@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
 
                     if( max_in_three < ALCO_THRESHOLD )
                         {
-                            double current_direction = asin(array_robot_msgs_host[counter].position.target_pose.pose.orientation.z) * 2;
+                            double current_direction = array_robot_msgs_host[counter].yaw;
                             double step_length = 0.5;
 
                             assignGoal_polar(array_robot_msgs_host, counter, step_length, current_direction);//0.5是步长，current_direction是全局角度(弧度制)。角度为0的时候，就会向场地正前方走
@@ -345,7 +345,7 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        double robot_direction = asin(array_robot_msgs_host[counter].position.target_pose.pose.orientation.z) * 2;
+                        double robot_direction = array_robot_msgs_host[counter].yaw;
                         double wind_direction = (array_robot_msgs_host[counter].wind_information.direction -180) / 360.0 * M_PI + robot_direction;
                         v_wind.x = STEP_LEN_MAX * cos(wind_direction);
                         v_wind.y = STEP_LEN_MAX * sin(wind_direction);
