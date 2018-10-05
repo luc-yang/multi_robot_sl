@@ -50,11 +50,8 @@ int main (int argc, char** argv)
         ser.write(request,8);   //发送串口数据 
         if(ser.available())
         { 
-            ROS_INFO_STREAM("Reading from serial port\n"); 
             std_msgs::String result; 
             result.data = ser.read(ser.available());
-            ROS_INFO_STREAM("Read: "<<result.data);
-            ROS_INFO_STREAM(""<<(unsigned char)result.data[0]);
             int a[8];
             for(int i=0;i<8;i++)
                {

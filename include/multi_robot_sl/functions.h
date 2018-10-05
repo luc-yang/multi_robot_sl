@@ -1,57 +1,74 @@
 #include <multi_robot_sl/config.h>
 
-
-
-void mkExperimentDataDir(int robot_id)
+void mkExperimentDataDir()
 {
-    char cmd[1024];
-    FILE *experiment_serial_number_file;
+    cout << "Enter experiment serial number to start PSO:";
+    scanf("%d",&experiment_serial_number);
+    cout << "Start the experiment" << endl;
+    sprintf(file_path,"mkdir -p ./PSO_experiment_data/%d/client_1",experiment_serial_number);
+    system(file_path);
 
-    sprintf(cmd,"mkdir -p ./PSO_experiment_data");
-    system(cmd);
-    
-    switch (robot_id)
-    {
-        case 1:
-            cout << "Enter experiment serial number to start PSO:";
-            scanf("%d",&experiment_serial_number);
-            experiment_serial_number_file = fopen("./PSO_experiment_data/experiment_serial_number_file","w");
-            fwrite(&experiment_serial_number,sizeof(int),1,experiment_serial_number_file);
-            if(experiment_serial_number_file == NULL)
-            {
-            ROS_ERROR_STREAM("File open error");
-            }
-            fclose(experiment_serial_number_file);
-            break;
-        case 2 :
-        case 3 :
-            experiment_serial_number_file = fopen("./PSO_experiment_data/experiment_serial_number_file","r");
-            
-            if(experiment_serial_number_file == NULL)
-            {
-                ROS_ERROR_STREAM("File open error,try to start with clien_1.");
-            }
-            fread(&experiment_serial_number,sizeof(int),1,experiment_serial_number_file);
-            fclose(experiment_serial_number_file);
-            break;
-        default:
-            ROS_ERROR_STREAM("Error,try to start with clien_1.");
-    }
-    
+    sprintf(file_path,"mkdir -p ./PSO_experiment_data/%d/client_2",experiment_serial_number);
+    system(file_path);
 
-
-    sprintf(cmd,"mkdir -p ./PSO_experiment_data/%d/client_1",experiment_serial_number);
-    system(cmd);
-
-    sprintf(cmd,"mkdir -p ./PSO_experiment_data/%d/client_2",experiment_serial_number);
-    system(cmd);
-
-    sprintf(cmd,"mkdir -p ./PSO_experiment_data/%d/client_3",experiment_serial_number);
-    system(cmd);
+    sprintf(file_path,"mkdir -p ./PSO_experiment_data/%d/client_3",experiment_serial_number);
+    system(file_path);
        
-    sprintf(cmd,"./PSO_experiment_data/%d/client_%d",experiment_serial_number,robot_id);
-    cout << "The file path is " << cmd << endl;
+    sprintf(file_path,"./PSO_experiment_data/%d/client_%d",experiment_serial_number,robot_id);
+    cout << "The file path is " << file_path << endl;
 }
+
+// void mkExperimentDataDir(int robot_id)
+// {
+//     ROS_ERROR_STREAM(robot_id);
+//     char cmd[1024];
+//     FILE *experiment_serial_number_file;
+
+//     sprintf(cmd,"mkdir -p ./PSO_experiment_data");
+//     system(cmd);
+    
+//     switch (robot_id)
+//     {
+//         case 1:
+//             cout << "Enter experiment serial number to start PSO:" << endl;
+//             scanf("%d",&experiment_serial_number);
+//             experiment_serial_number_file = fopen("./PSO_experiment_data/experiment_serial_number_file","w");
+//             fwrite(&experiment_serial_number,sizeof(int),1,experiment_serial_number_file);
+//             if(experiment_serial_number_file == NULL)
+//             {
+//             ROS_ERROR_STREAM("File open error");
+//             }
+//             fclose(experiment_serial_number_file);
+//             break;
+//         case 2 :
+//         case 3 :
+//             experiment_serial_number_file = fopen("./PSO_experiment_data/experiment_serial_number_file","r");
+            
+//             if(experiment_serial_number_file == NULL)
+//             {
+//                 ROS_ERROR_STREAM("File open error,try to start with clien_1.");
+//             }
+//             fread(&experiment_serial_number,sizeof(int),1,experiment_serial_number_file);
+//             fclose(experiment_serial_number_file);
+//             break;
+//         default:
+//             ROS_ERROR_STREAM("Error,try to start with clien_1.");
+//     }
+    
+
+
+//     sprintf(cmd,"mkdir -p ./PSO_experiment_data/%d/client_1",experiment_serial_number);
+//     system(cmd);
+
+//     sprintf(cmd,"mkdir -p ./PSO_experiment_data/%d/client_2",experiment_serial_number);
+//     system(cmd);
+
+//     sprintf(cmd,"mkdir -p ./PSO_experiment_data/%d/client_3",experiment_serial_number);
+//     system(cmd);
+       
+//     sprintf(cmd,"./PSO_experiment_data/%d/client_%d",experiment_serial_number,robot_id);
+//     cout << "The file path is " << cmd << endl;
+// }
 
 bool isNearSource(double x,double y)
 {
@@ -141,7 +158,7 @@ void frw(RobotMsgs  array[],int counter_max,int change_counter,char algorithm_ty
     
     ofstream fout(str,ios::app);
     fout<<"algorithm_type = "<<algorithm_type<<"\n";
-    fout<<"robot_id = "<<array[0].robot_id<<"\n";
+    fout<<"robot_id = "<<array[1].robot_id<<"\n";
     fout<<"max counter = "<<counter_max<<"\n";
     fout<<"change counter = "<<change_counter<<"\n";
     fout<<tm_now->tm_year+1900<<tm_now->tm_mon+1<<tm_now->tm_mday<<tm_now->tm_hour<<tm_now->tm_min<<"\n";

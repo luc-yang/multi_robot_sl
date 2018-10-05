@@ -14,9 +14,9 @@ int main(int argc, char **argv)
 
   while (ros::ok())
   {
-      mkExperimentDataDir(1);
-      mkExperimentDataDir(2);
-      mkExperimentDataDir(3);
+      mkExperimentDataDir();
+      mkExperimentDataDir();
+      mkExperimentDataDir();
   }
   
 

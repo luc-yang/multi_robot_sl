@@ -1,6 +1,8 @@
 #include <cstdlib> //文件读写用到的头文件
 #include <multi_robot_sl/functions.h>
 
+
+
 char algorithm_type[] = "PSO";
 int state = 0;// state代表机器人所处的状态，然后在下面就可以用swich来跳转状态
 
@@ -64,18 +66,43 @@ int main(int argc, char *argv[])
     //自动生成路径
     nh.getParam("robot_id", robot_id);
     ROS_INFO_STREAM("Robot id = " << robot_id);
-    mkExperimentDataDir(experiment_serial_number);
+    mkExperimentDataDir();
 
     int counter_1,counter_2,counter_3;
-    counter_1 = -20;
-    counter_2 = -330;
-    counter_3 = -1110;
+    counter_1 = int(rand());
+    counter_2 = int(rand());
+    counter_3 = int(rand());
     FILE *client_1_counter;
     FILE *client_2_counter;
     FILE *client_3_counter;
     FILE *robot_msgs_client_1;
     FILE *robot_msgs_client_2;
     FILE *robot_msgs_client_3;
+
+    // 记得先给三个counter文件赋随机整数值，否则容易出现段错误，主要是因为counter过早一致，会让某个机器人读还没有产生的值
+    client_1_counter = fopen("./PSO_experiment_data/client_1_counter","w");
+    fwrite(&counter_1,sizeof(int),1,client_1_counter);
+    if(client_1_counter == NULL)
+    {
+    ROS_ERROR_STREAM("File open error");
+    }
+    fclose(client_1_counter);
+
+    client_2_counter = fopen("./PSO_experiment_data/client_2_counter","w");
+    fwrite(&counter_2,sizeof(int),1,client_2_counter);
+    if(client_2_counter == NULL)
+    {
+    ROS_ERROR_STREAM("File open error");
+    }
+    fclose(client_2_counter);
+
+    client_3_counter = fopen("./PSO_experiment_data/client_3_counter","w");
+    fwrite(&counter_3,sizeof(int),1,client_3_counter);
+    if(client_3_counter == NULL)
+    {
+    ROS_ERROR_STREAM("File open error");
+    }
+    fclose(client_3_counter);
 
     /*   move base 段  */
     // 定义actionlib的client
@@ -119,7 +146,6 @@ int main(int argc, char *argv[])
                 break;                            
             default:
                 ROS_ERROR_STREAM("client is " << robot_id );
-                
         }
 
         ROS_DEBUG_STREAM("Robot msg has been written into " << file_path);
@@ -208,13 +234,13 @@ int main(int argc, char *argv[])
             fread(&counter_2,sizeof(int),1,client_2_counter);
             fclose(client_2_counter);
 
-            client_3_counter = fopen("./PSO_experiment_data/client_3_counter","r");
-            if(client_2_counter == NULL)
-            {
-                ROS_ERROR_STREAM("client_3_counter open error");
-            }
-            fread(&counter_3,sizeof(int),1,client_3_counter);
-            fclose(client_3_counter);
+            // client_3_counter = fopen("./PSO_experiment_data/client_3_counter","r");
+            // if(client_2_counter == NULL)
+            // {
+            //     ROS_ERROR_STREAM("client_3_counter open error");
+            // }
+            // fread(&counter_3,sizeof(int),1,client_3_counter);
+            // fclose(client_3_counter);
             ROS_INFO_STREAM("Waiting:\n " << counter_1 << " " << counter_2 << " " << counter_3);
             ros::Duration(0.3).sleep();
         }
@@ -224,14 +250,14 @@ int main(int argc, char *argv[])
         sprintf(file_path,"./PSO_experiment_data/%d/client_1/%d",experiment_serial_number,counter);
         robot_msgs_client_1 = fopen(file_path,"r");
         fread(&array_robot_msgs_client_1[counter],sizeof(array_robot_msgs_host[counter]),1,robot_msgs_client_1);
-        ROS_DEBUG_STREAM(array_robot_msgs_client_1[counter]);
+        // ROS_DEBUG_STREAM(array_robot_msgs_client_1[counter]);
         fclose(robot_msgs_client_1);
         ROS_DEBUG_STREAM("Robot msg has been read from " << file_path);
 
         sprintf(file_path,"./PSO_experiment_data/%d/client_2/%d",experiment_serial_number,counter);
         robot_msgs_client_2 = fopen(file_path,"r");
         fread(&array_robot_msgs_client_2[counter],sizeof(array_robot_msgs_host[counter]),1,robot_msgs_client_2);
-        ROS_DEBUG_STREAM(array_robot_msgs_client_2[counter]);
+        // ROS_DEBUG_STREAM(array_robot_msgs_client_2[counter]);
         fclose(robot_msgs_client_2);
         ROS_DEBUG_STREAM("Robot msg has been read from " << file_path);
 
@@ -321,9 +347,9 @@ int main(int argc, char *argv[])
                     }
                     global_optimum[counter] = p_go;
                     ROS_INFO_STREAM("Global Optimum :client_" << go.client_num << " counter " << go.counter);
-                    ROS_INFO_STREAM("GO X = " << p_go.x << "， GO Y = "  << p_go.y );
+                    ROS_INFO_STREAM("GO X = " << p_go.x << ", GO Y = "  << p_go.y );
                     ROS_INFO_STREAM("Local Optimum :client_" << robot_id << " counter " << lo_counter);
-                    ROS_INFO_STREAM("LO X = " << p_lo.x << "， LO Y = "  << p_lo.y );
+                    ROS_INFO_STREAM("LO X = " << p_lo.x << ", LO Y = "  << p_lo.y );
 
                     // 获取当前位置
                     p_cur.x = array_robot_msgs_host[counter].POSITON.x;
@@ -345,8 +371,7 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        double robot_direction = array_robot_msgs_host[counter].yaw;
-                        double wind_direction = (array_robot_msgs_host[counter].wind_information.direction -180) / 360.0 * M_PI + robot_direction;
+                        double wind_direction = array_robot_msgs_host[counter].wind_information.direction;
                         v_wind.x = STEP_LEN_MAX * cos(wind_direction);
                         v_wind.y = STEP_LEN_MAX * sin(wind_direction);
                     }
@@ -373,7 +398,7 @@ int main(int argc, char *argv[])
 
                     ROS_ERROR_STREAM("step_length = "<<step_length);
 
-                    //这里设置机器人的最大和最小步长
+                    //对步长进行修正
                     if(step_length > STEP_LEN_MAX)
                     {
                         delta_x = (delta_x) * STEP_LEN_MAX / step_length ;
@@ -385,10 +410,10 @@ int main(int argc, char *argv[])
                         delta_y = (delta_y) * (STEP_LEN_MIN + 0.5) / step_length ;
                     }
                     
-                    //更新下一点的坐标
+                    //获得下一点的坐标
                     p_next.x = p_cur.x + delta_x;
                     p_next.y = p_cur.y + delta_y;
-                    ROS_ERROR_STREAM("P_NEXT" << p_next.x << "  " << p_next.y);
+                    ROS_ERROR_STREAM("p_next (" << p_next.x << "," << p_next.y <<")");
                     
                     //更新step_length的值
                     step_length = sqrt(pow(delta_x,2)+pow(delta_y,2));
@@ -414,7 +439,7 @@ int main(int argc, char *argv[])
                     sendGoal(ac,array_robot_msgs_host[counter+1].position);
                 }
         }
-
+        
         // int a = 5;
         // if ((counter >= change_counter + a) && (state == 1))// 判断是否已经找到源 
         // {

@@ -53,7 +53,7 @@ typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseCl
 typedef move_base_msgs::MoveBaseGoal MoveBaseGoal;
 typedef multi_robot_sl::robot_msgs RobotMsgs;
 
-int record_seconds = 5;//record_seconds要大于wait_seconds
+int record_seconds = 2;//record_seconds要大于wait_seconds
 int wait_seconds = 0;
 
 int experiment_serial_number;

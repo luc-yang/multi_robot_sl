@@ -68,6 +68,8 @@ int main(int argc, char *argv[])
         ros::spinOnce();
         ros::spinOnce();
         ros::spinOnce();
+
+        //这里生成的风向指风的源头所在的位置的全局角度。
         msgs_temp.wind_information.speed = local_wind.speed;
         global_wind_direction = local_wind.direction + yaw;
         if(global_wind_direction <= - 1.2 * M_PI)
