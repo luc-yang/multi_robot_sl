@@ -1,8 +1,8 @@
 <launch>
-    <!--在机器人上启动，使用假的传感器信息-->
+    <!--在机器人上启动，使用真的传感器信息-->
     <param name="robot_id" type="int" value="$(env ROBOT_ID)" />
     <!--<node pkg="multi_robot_sl" type="msg_client.py" name="msg_client" />-->
-    <node pkg="multi_robot_sl" type="fake_wind_sensor" name="fake_wind_sensor" />
+    <node pkg="multi_robot_sl" type="wind_sensor" name="wind_sensor" />
     <node pkg="multi_robot_sl" type="fake_alco_sensor" name="fake_alco_sensor" />
     <!--发布的是假的浓度信息，浓度到源的距离有关-->
     <node pkg="multi_robot_sl" type="robot_msgs_pub" name="robot_msgs_pub" output="screen"/>

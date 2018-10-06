@@ -70,9 +70,9 @@ int main(int argc, char *argv[])
         ros::spinOnce();
 
         //这里生成假的浓度信息
-        double x =  msgs_temp.position.target_pose.pose.position.x;
-        double y =  msgs_temp.position.target_pose.pose.position.y;
-        msgs_temp.alco_concentration.concentration = 200 - 10*sqrt(pow(x - X_SOURCE_POSITION, 2)+pow(y - Y_SOURCE_POSITION, 2));
+        double position_x =  msgs_temp.position.target_pose.pose.position.x;
+        double position_y =  msgs_temp.position.target_pose.pose.position.y;
+        msgs_temp.alco_concentration.concentration = 200 - 10*sqrt(pow(position_x - X_SOURCE_POSITION, 2)+pow(position_y - Y_SOURCE_POSITION, 2));
         msgs_temp.wind_information.speed = 10;
         msgs_temp.wind_information.direction = atan((Y_SOURCE_POSITION-y)/(X_SOURCE_POSITION-x));
 

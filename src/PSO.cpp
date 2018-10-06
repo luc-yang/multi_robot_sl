@@ -45,6 +45,8 @@ void getRobotMsgs(RobotMsgs &msg)//输入robot_msgs_array[counter]，会修改�
     msg.alco_concentration.concentration   = concentration_temp/(record_seconds-wait_seconds);
     msg.wind_information.speed             = wind_speed_temp/(record_seconds-wait_seconds);
     msg.wind_information.direction         = wind_direction_temp/(record_seconds-wait_seconds);
+    ROS_ERROR_STREAM("alco_concentration\twind_speed\twind_direction");
+    ROS_ERROR_STREAM(msg.alco_concentration.concentration << "\t" <<msg.wind_information.speed<< "\t" <<msg.wind_information.direction);
 }
 
 int main(int argc, char *argv[])
@@ -120,6 +122,7 @@ int main(int argc, char *argv[])
         
         //获取浓度,位置、风速等信息
         getRobotMsgs(array_robot_msgs_host[counter]);
+
         array_robot_msgs_host[counter].robot_id = robot_id;
         // ROS_ERROR_STREAM(array_robot_msgs_host[counter]);
 
@@ -362,7 +365,7 @@ int main(int argc, char *argv[])
 
                     //生成风速度项
                     double wind_speed = array_robot_msgs_host[counter].wind_information.speed;
-                    //要注意到这里的风向是和机器人正方向的相对位置,计算时采用弧度制，范围是-PI到PI
+                    //生成的风向是机器人与风源连线形成向量在世界坐标系下的角度。
                     if(wind_speed < WIND_THRESHOLD)
                     {
                         double temp_angle = M_PI * ((double(rand()%100)/100) * 2 - 1);//随机生成一个-PI到PI的角
@@ -384,10 +387,10 @@ int main(int argc, char *argv[])
                     srand(time(NULL)+rand());
                     K_2 = 2 * (double(rand()%100)/100);
                     srand(time(NULL)+rand());
-                    K_3 = 2 * (double(rand()%100)/100);
+                    K_3 = 1 * (double(rand()%100)/100);
                     
 
-                    //运算下一位置(少风速项)
+                    //运算下一位置
                     double delta_x,delta_y;
                     delta_x = p_cur.x - p_last.x + K_1 * (p_lo.x - p_cur.x) + K_2 * (p_go.x - p_cur.x) + K_3 * v_wind.x;
                     delta_y = p_cur.y - p_last.y + K_1 * (p_lo.y - p_cur.y) + K_2 * (p_go.y - p_cur.y) + K_3 * v_wind.x;
