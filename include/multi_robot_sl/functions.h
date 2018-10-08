@@ -1,5 +1,67 @@
 #include <multi_robot_sl/config.h>
 
+
+
+P psoObstacleAvoiding(int robot_id,GO global_optimum,P cur,P next)
+{
+    int go_id = global_optimum.client_num;
+    FILE *host_p_next;
+    switch (robot_id)
+    {
+        case 1:
+            host_p_next = fopen("./PSO_experiment_data/client_1_p_next","w");
+            fwrite(&next,sizeof(P),1,host_p_next);
+            fclose(host_p_next);
+            break;
+        case 2:
+            host_p_next = fopen("./PSO_experiment_data/client_2_p_next","w");
+            fwrite(&next,sizeof(P),1,host_p_next);
+            fclose(host_p_next);
+            break;
+        // case 3:
+        //     client_3_p_next = fopen("./PSO_experiment_data/client_3_p_next","w");
+        //     fwrite(&next,sizeof(P),1,host_p_next);
+        //     fclose(host_p_next);
+        //     break;
+        default:
+            ROS_ERROR_STREAM("psoObstacleAvoiding:Robot id error!");
+    }
+    
+    P clients_next[3];
+    FILE *client_1_p_next;
+    FILE *client_2_p_next;
+    // FILE *client_3_p_next;
+    client_1_p_next = fopen("./PSO_experiment_data/client_1_p_next","r");
+    client_2_p_next = fopen("./PSO_experiment_data/client_2_p_next","r");
+    // client_3_p_next = fopen("./PSO_experiment_data/client_3_p_next","r");
+    fread(&clients_next[0],sizeof(P),1,client_1_p_next);
+    fread(&clients_next[1],sizeof(P),1,client_2_p_next);
+    // fread(&clients_next[2],sizeof(P),client_3_p_next);
+    
+    if(go_id != robot_id)
+    {
+        ROS_ERROR_STREAM("go_id != robot_id");
+        double dis = sqrt(pow(next.x - clients_next[go_id-1].x,2)+pow(next.y - clients_next[go_id-1].y,2));
+        if (dis < 0.2)
+        {
+            ROS_ERROR_STREAM("returned cur");
+            return cur;
+        }
+        else
+        {
+            ROS_ERROR_STREAM("returned next");
+            return next;
+        }
+            
+    }
+    else
+    {
+        ROS_ERROR_STREAM("go_id = robot_id");
+        ROS_ERROR_STREAM("returned next");
+        return next;
+    }
+    
+}
 void mkExperimentDataDir()
 {
     cout << "Enter experiment serial number to start PSO:";
@@ -142,27 +204,27 @@ void sendGoal(MoveBaseClient& actionlibClient,MoveBaseGoal goal)
         }
 }
 
-void frw(RobotMsgs  array[],int counter_max,int change_counter,char algorithm_type[])
+void frw(RobotMsgs  array[],OPTIMUM go_array[],int counter_max,int change_counter,char algorithm_type[])
 {
+    ROS_INFO_STREAM("Saving data...");
     int counter;
     time_t now;
     struct tm *tm_now ;
     time(&now) ;
     tm_now = localtime(&now) ;
 	char str[100];
-
-	sprintf(str,"./PSO_experiment_data/%s-%d-%d-%d-%d-%d-%d.txt"
-	        ,algorithm_type,tm_now->tm_year+1900, tm_now->tm_mon+1, tm_now->tm_mday, tm_now->tm_hour, tm_now->tm_min, tm_now->tm_sec);
+	sprintf(str,"./PSO_experiment_data/%s-%d-%d-%d-%d-%d-client_%d.txt"
+	        ,algorithm_type,tm_now->tm_year+1900, tm_now->tm_mon+1, tm_now->tm_mday, tm_now->tm_hour, tm_now->tm_min, robot_id);
 	ROS_INFO("Saving data to %s",str);
 
-    
     ofstream fout(str,ios::app);
     fout<<"algorithm_type = "<<algorithm_type<<"\n";
     fout<<"robot_id = "<<array[1].robot_id<<"\n";
     fout<<"max counter = "<<counter_max<<"\n";
     fout<<"change counter = "<<change_counter<<"\n";
     fout<<tm_now->tm_year+1900<<tm_now->tm_mon+1<<tm_now->tm_mday<<tm_now->tm_hour<<tm_now->tm_min<<"\n";
-    fout<<"counter"<<"\t"<<"x"<<"\t"<<"y"<<"\t"<<"theta"<<"\t"<<"z"<<"\t"<<"w"<<"\t"<<"time"<<"\t"<<"concentration"<<"\t"<<"wind_speed"<<"\t"<<"wind_direction"<<"\n";
+    fout<<"counter"<<"\t"<<"x"<<"\t"<<"y"<<"\t"<<"robot_direction"<<"\t"<<"time"<<"\t"<<"concentration"<<"\t"<<"wind_speed"
+        <<"\t"<<"wind_direction"<<"\t"<<"go_x"<<"\t"<<"go_y"<<"\t"<<"go_client_num"<<"\t"<<"go_counter"<<"\t"<<"go_concentration"<<"\n";
     
     
     for(counter=0;counter<counter_max+1;counter++)
@@ -170,13 +232,16 @@ void frw(RobotMsgs  array[],int counter_max,int change_counter,char algorithm_ty
         fout<<counter<<"\t"
             <<array[counter].position.target_pose.pose.position.x<<"\t"
             <<array[counter].position.target_pose.pose.position.y<<"\t"
-            <<asin(array[counter].position.target_pose.pose.orientation.z)*2<<"\t"
-            <<array[counter].position.target_pose.pose.orientation.z<<"\t"
-            <<array[counter].position.target_pose.pose.orientation.w<<"\t"
+            <<array[counter].yaw<<"\t"
             <<array[counter].position.target_pose.header.stamp<<"\t"
             <<array[counter].alco_concentration.concentration<<"\t"
             <<array[counter].wind_information.speed<<"\t"
-            <<array[counter].wind_information.direction<<"\n";
+            <<array[counter].wind_information.direction<<"\t"
+            <<go_array[counter].position.x<<"\t"
+            <<go_array[counter].position.y<<"\t"
+            <<go_array[counter].go.client_num<<"\t"
+            <<go_array[counter].go.counter<<"\t"
+            <<go_array[counter].concentration<<"\n";
     }
 
     fout.close();
@@ -311,18 +376,7 @@ int getMaxCounterInArray(RobotMsgs a[],int counter)
     return max_counter;
 }
 
-struct P
-{
-    double x;
-    double y;
-};
 
-//为获取全局最优而定义的结构体
-struct GO
-{
-    int client_num;
-    int counter;
-};
 
 GO getMaxCounterInThreeArray(RobotMsgs client_1[],RobotMsgs client_2[],RobotMsgs client_3[],int counter)
 {

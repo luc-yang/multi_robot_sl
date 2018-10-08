@@ -33,8 +33,8 @@
 
 #define SEARCHING_TIME 30
 
-#define X_SOURCE_POSITION 3.45
-#define Y_SOURCE_POSITION -0.8
+#define X_SOURCE_POSITION 2.5
+#define Y_SOURCE_POSITION 0
 //地图扫描后的实验场地参数
 
 #define ARRAY_LENGTH 150
@@ -42,7 +42,7 @@
 
 #define SOURCE_RANGE 0.3
 
-#define STEP_LEN_MAX 0.2
+#define STEP_LEN_MAX 0.5
 #define STEP_LEN_MIN 0.1
 #define WIND_THRESHOLD 1
 #define ALCO_THRESHOLD 500
@@ -59,6 +59,26 @@ int wait_seconds = 0;
 int experiment_serial_number;
 char file_path[1024];
 int robot_id;
+
+struct P
+{
+    double x;
+    double y;
+};
+
+//为获取全局最优而定义的结构体
+struct GO
+{
+    int client_num;
+    int counter;
+};
+
+struct OPTIMUM
+{
+    P position;
+    GO go;
+    double concentration;
+};
 
 
 RobotMsgs robot_msgs_temp;

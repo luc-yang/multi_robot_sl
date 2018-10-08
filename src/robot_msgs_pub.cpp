@@ -77,6 +77,7 @@ int main(int argc, char *argv[])
         else
             msgs_temp.wind_information.direction = global_wind_direction;
         pub.publish(msgs_temp);
+        loop_rate.sleep();
     }
 }
 

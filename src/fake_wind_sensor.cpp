@@ -32,6 +32,7 @@ int main(int argc, char **argv)
 
   while (ros::ok())
   {
+    listener.lookupTransform(map_frame,base_frame, ros::Time(0), transform);
     x = transform.getOrigin().x();
     y = transform.getOrigin().y();
     fake_wind.speed = rand()%(2*WIND_THRESHOLD);

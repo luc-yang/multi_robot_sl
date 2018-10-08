@@ -60,6 +60,7 @@ int main (int argc, char** argv)
             wind_information.speed = (float)((a[3]<<8)+a[4])/100;
             double angle;
             angle = (float)((a[5]<<8)+a[6]);
+            
             if(angle >= 180)
                 wind_information.direction = - M_PI / 180 * angle + 2 * M_PI;
             else

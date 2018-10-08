@@ -1,12 +1,10 @@
 <launch>
     <!--在机器人上启动，使用真的传感器信息-->
     <param name="robot_id" type="int" value="$(env ROBOT_ID)" />
-    <!--<node pkg="multi_robot_sl" type="msg_client.py" name="msg_client" />-->
     <node pkg="multi_robot_sl" type="fake_wind_sensor" name="fake_wind_sensor" />
     <node pkg="rosserial_python" type="serial_node.py" name="serial_node">
         <param name="port" type="string" value="/dev/alco_sensor"/>
         <param name="baud" type="int" value="115200"/>
     </node>
-    <!--发布的是假的浓度信息，浓度到源的距离有关-->
-    <node pkg="multi_robot_sl" type="robot_msgs_pub" name="robot_msgs_pub" output="screen"/>
+    <node pkg="multi_robot_sl" type="fake_robot_msgs_pub" name="fake_robot_msgs_pub" output="screen"/>
 </launch>

@@ -9,8 +9,8 @@ int state = 0;// state代表机器人所处的状态，然后在下面就可以�
 RobotMsgs temp_robot_msgs;
 RobotMsgs array_robot_msgs_host[ARRAY_LENGTH];
 
-P global_optimum[ARRAY_LENGTH];
-P local_optimum[ARRAY_LENGTH];
+OPTIMUM global_optimum[ARRAY_LENGTH];
+OPTIMUM local_optimum[ARRAY_LENGTH];
 
 void robot_msgs_subCallback(const RobotMsgs &msg)
 {
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     ros::Rate loop_rate(10);
     
     int counter = 0;//机器人行进的步数
-    int change_counter = 0; //发现改变策略的步数
+    int change_counter = 7; //发现改变策略的步数
 
 
     //自动生成路径
@@ -80,6 +80,10 @@ int main(int argc, char *argv[])
     FILE *robot_msgs_client_1;
     FILE *robot_msgs_client_2;
     FILE *robot_msgs_client_3;
+
+
+
+
 
     // 记得先给三个counter文件赋随机整数值，否则容易出现段错误，主要是因为counter过早一致，会让某个机器人读还没有产生的值
     client_1_counter = fopen("./PSO_experiment_data/client_1_counter","w");
@@ -118,7 +122,7 @@ int main(int argc, char *argv[])
 
 
     for(counter = 1; ros::ok() && (counter < 25); counter++)
-    {   
+    {
         
         //获取浓度,位置、风速等信息
         getRobotMsgs(array_robot_msgs_host[counter]);
@@ -146,7 +150,7 @@ int main(int argc, char *argv[])
                 robot_msgs_client_3 = fopen(file_path,"w");
                 fwrite(&array_robot_msgs_host[counter],sizeof(array_robot_msgs_host[counter]),1,robot_msgs_client_3);
                 fclose(robot_msgs_client_3);
-                break;                            
+                break;                        
             default:
                 ROS_ERROR_STREAM("client is " << robot_id );
         }
@@ -319,7 +323,8 @@ int main(int argc, char *argv[])
                     lo_counter = getMaxCounterInArray(array_robot_msgs_host,counter);
                     p_lo.x = array_robot_msgs_host[lo_counter].POSITON.x;
                     p_lo.y = array_robot_msgs_host[lo_counter].POSITON.y;
-                    local_optimum[counter] = p_lo;
+                    local_optimum[counter].position = p_lo;
+                    local_optimum[counter].concentration = array_robot_msgs_host[lo_counter].alco_concentration.concentration;
 
                     //获取全局最优
                     GO go;
@@ -331,24 +336,26 @@ int main(int argc, char *argv[])
                                 {
                                     p_go.x = array_robot_msgs_client_1[go.counter].POSITON.x;
                                     p_go.y = array_robot_msgs_client_1[go.counter].POSITON.y;
-                                    
+                                    global_optimum[counter].concentration = array_robot_msgs_client_1[go.counter].alco_concentration.concentration;
                                     break;
                                 }
                         case 2:
                                 {
                                     p_go.x = array_robot_msgs_client_2[go.counter].POSITON.x;
                                     p_go.y = array_robot_msgs_client_2[go.counter].POSITON.y;
-                                    
+                                    global_optimum[counter].concentration = array_robot_msgs_client_2[go.counter].alco_concentration.concentration;
                                     break;
                                 }
                         case 3:
                                 {
                                     p_go.x = array_robot_msgs_client_3[go.counter].POSITON.x;
                                     p_go.y = array_robot_msgs_client_3[go.counter].POSITON.y;
+                                    global_optimum[counter].concentration = array_robot_msgs_client_3[go.counter].alco_concentration.concentration;
                                     break;
                                 }
                     }
-                    global_optimum[counter] = p_go;
+                    global_optimum[counter].position = p_go;
+                    global_optimum[counter].go = go;
                     ROS_INFO_STREAM("Global Optimum :client_" << go.client_num << " counter " << go.counter);
                     ROS_INFO_STREAM("GO X = " << p_go.x << ", GO Y = "  << p_go.y );
                     ROS_INFO_STREAM("Local Optimum :client_" << robot_id << " counter " << lo_counter);
@@ -387,7 +394,7 @@ int main(int argc, char *argv[])
                     srand(time(NULL)+rand());
                     K_2 = 2 * (double(rand()%100)/100);
                     srand(time(NULL)+rand());
-                    K_3 = 1 * (double(rand()%100)/100);
+                    K_3 = 2 * (double(rand()%100)/100);
                     
 
                     //运算下一位置
@@ -409,8 +416,8 @@ int main(int argc, char *argv[])
                     }
                     else if((step_length < STEP_LEN_MIN) && (step_length > 0))
                     {
-                        delta_x = (delta_x) * (STEP_LEN_MIN + 0.5)/ step_length ;
-                        delta_y = (delta_y) * (STEP_LEN_MIN + 0.5) / step_length ;
+                        delta_x = (delta_x) * (STEP_LEN_MIN + 0.05)/ step_length ;
+                        delta_y = (delta_y) * (STEP_LEN_MIN + 0.05) / step_length ;
                     }
                     
                     //获得下一点的坐标
@@ -430,9 +437,12 @@ int main(int argc, char *argv[])
                     //如果执行了避障，则array_robot_msgs_host里的下一点目标就被修改了，所以要再给p_next赋值
                     p_next.x = array_robot_msgs_host[counter+1].position.target_pose.pose.position.x;
                     p_next.y = array_robot_msgs_host[counter+1].position.target_pose.pose.position.y;
+
+                    p_next = psoObstacleAvoiding(robot_id,go,p_cur,p_next);
+
                     delta_x = p_next.x - p_cur.x;
                     delta_y = p_next.y - p_cur.y;
-                    
+
                     //计算出正确的方向，避免出现机器人重复摆动的情况
                     direction = atan(delta_y/delta_x);
                     array_robot_msgs_host[counter+1].position.target_pose.pose.orientation.w = cos(direction/2.0);
@@ -443,26 +453,28 @@ int main(int argc, char *argv[])
                 }
         }
         
-        // int a = 5;
-        // if ((counter >= change_counter + a) && (state == 1))// 判断是否已经找到源 
-        // {
-        //     double x1 = global_optimum[counter].x;
-        //     double y1 = global_optimum[counter].y;
-        //     double x2 = global_optimum[counter-a+1].x;
-        //     double y2 = global_optimum[counter-a+1].y;
+        int a = 3;
+        if ((counter >= change_counter + a) && (state == 1))// 判断是否已经找到源 
+        {
+            ROS_ERROR_STREAM("Confirming source");
+            double x1 = global_optimum[counter].position.x;
+            double y1 = global_optimum[counter].position.y;
+            double x2 = global_optimum[counter-a+1].position.x;
+            double y2 = global_optimum[counter-a+1].position.y;
 
-        //     double distance = sqrt(pow(x1-x2,2)+pow(y1-y2,2));
+            double distance = sqrt(pow(x1-x2,2)+pow(y1-y2,2));
 
-        //     if (distance <= 0.1)
-        //     {
-        //         if  (isNearSource(x1,y1))
-        //             ROS_ERROR_STREAM("SUCCESSED");
-        //         else
-        //             ROS_ERROR_STREAM("FAILED");
-        //         break;
-        //     }
-        // }
+            if (distance <= 0.1)
+            {
+                if  (isNearSource(x1,y1))
+                    ROS_ERROR_STREAM("SUCCESSED");
+                else
+                    ROS_ERROR_STREAM("FAILED");
+                break;
+            }
+        }
     }
-    frw(array_robot_msgs_host,counter,change_counter,algorithm_type);
     ROS_ERROR_STREAM("Stoping PSO.....");
+    frw(array_robot_msgs_host,global_optimum,counter, change_counter,algorithm_type);
+    
 }

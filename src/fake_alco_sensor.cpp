@@ -31,6 +31,7 @@ int main(int argc, char **argv)
 
   while (ros::ok())
   {
+    listener.lookupTransform(map_frame,base_frame, ros::Time(0), transform);
     x = transform.getOrigin().x();
     y = transform.getOrigin().y();
     fake_alco.concentration = 200 - 10 * sqrt(pow( x - X_SOURCE_POSITION, 2)+pow( y - Y_SOURCE_POSITION,2));
